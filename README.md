@@ -15,7 +15,7 @@ If you like my work, please buy me a coffee. This will keep me awake :)
 
 
 Example config:
-#### Don't forget to remove the comments from the example config (everything between and after the parentheses)
+
 ```Configuration.yaml:
 sensor:
   - platform: luchtmeetnet
