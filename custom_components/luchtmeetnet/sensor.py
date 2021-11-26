@@ -62,15 +62,13 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     _LOGGER.debug("Initializing luchtmeet sensor coordinate %s", coordinates)
 
     coordinator = LMNUpdateCoordinator(hass, coordinates)
-    await coordinator.async_refresh()
-    if not coordinator.last_update_success:
-        raise ConfigEntryNotReady
+    await coordinator.async_config_entry_first_refresh()
 
     sensors = []
     for sensor_type in SENSOR_TYPES:
         sensors.append(LMNSensor(coordinator, sensor_type, config.get(CONF_NAME)))
 
-    async_add_entities(sensors)
+    async_add_entities(sensors, True)
 
 
 class LMNUpdateCoordinator(DataUpdateCoordinator):
@@ -122,28 +120,10 @@ class LMNSensor(CoordinatorEntity):
         """Initialize the sensor."""
         super().__init__(coordinator)
 
-        self.client_name = client_name
-        self._name = SENSOR_TYPES[sensor_type][0]
-        self.type = sensor_type
-        self._state = None
-        self._unit_of_measurement = SENSOR_TYPES[self.type][1]
+        self._attr_icon = SENSOR_TYPES[sensor_type][2]
+        self._attr_name = f"{client_name} {SENSOR_TYPES[sensor_type][0]}"
+        self._attr_native_unit_of_measurement = SENSOR_TYPES[sensor_type][1]
+        self._attr_state = self.coordinator.data[sensor_type]
+        
 
-    @property
-    def name(self):
-        """Return the name of the sensor."""
-        return f"{self.client_name} {self._name}"
 
-    @property
-    def state(self):
-        """Return the state of the device."""
-        return self.coordinator.data[self.type]
-
-    @property
-    def unit_of_measurement(self):
-        """Return the unit of measurement of this entity, if any."""
-        return self._unit_of_measurement
-
-    @property
-    def icon(self):
-        """Return possible sensor specific icon."""
-        return SENSOR_TYPES[self.type][2]
