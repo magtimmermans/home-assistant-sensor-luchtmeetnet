@@ -1,11 +1,10 @@
 {
   "domain": "luchtmeetnet",
-  "name": "LuchtmeetNet",
-  "documentation": "https://www.home-assistant.io/integrations/luchtmeetnet",
-  "requirements": [
-    "luchtmeetnet==0.0.2"
-  ],
-  "codeowners": [
-    "@magtimmermans"
-  ]
+  "name": "LuchtMeetNet",
+  "documentation": "https://github.com/magtimmermans/home-assistant-sensor-luchtmeetnet",
+  "dependencies": [],
+  "codeowners": ["@magtimmermans"],
+  "requirements": ["luchtmeetnet==0.0.2"],
+  "iot_class": "cloud_polling",
+  "version": "0.0.2"
 }
