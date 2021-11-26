@@ -1,6 +1,6 @@
 {
   "domain": "luchtmeetnet",
-  "name": "LuchtMeetNet",
+  "name": "LuchtmeetNet",
   "documentation": "https://github.com/magtimmermans/home-assistant-sensor-luchtmeetnet",
   "dependencies": [],
   "codeowners": ["@magtimmermans"],
