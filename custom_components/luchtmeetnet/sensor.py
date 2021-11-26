@@ -6,7 +6,11 @@ import voluptuous as vol
 from luchtmeetnet.luchtmeetnet import LuchtmeetNet
 
 from datetime import timedelta
-from homeassistant.components.sensor import PLATFORM_SCHEMA, STATE_CLASS_MEASUREMENT
+from homeassistant.components.sensor import (
+    PLATFORM_SCHEMA,
+    SensorEntity,
+    STATE_CLASS_MEASUREMENT
+)
 from homeassistant.const import (
     CONF_LATITUDE,
     CONF_LONGITUDE,
@@ -114,7 +118,7 @@ class LMNUpdateCoordinator(DataUpdateCoordinator):
             raise UpdateFailed(err)
 
 
-class LMNSensor(CoordinatorEntity):
+class LMNSensor(CoordinatorEntity, SensorEntity):
     """Representation of an LuchtmeetNet sensor."""
 
     def __init__(self, coordinator, sensor_type, client_name):
