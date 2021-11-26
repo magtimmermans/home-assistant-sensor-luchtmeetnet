@@ -6,11 +6,12 @@ import voluptuous as vol
 from luchtmeetnet.luchtmeetnet import LuchtmeetNet
 
 from datetime import timedelta
-from homeassistant.components.sensor import PLATFORM_SCHEMA
+from homeassistant.components.sensor import PLATFORM_SCHEMA, STATE_CLASS_MEASUREMENT
 from homeassistant.const import (
     CONF_LATITUDE,
     CONF_LONGITUDE,
     CONF_NAME,
+    DEVICE_CLASS_AQI,
 )
 import homeassistant.helpers.config_validation as cv
 
@@ -120,10 +121,12 @@ class LMNSensor(CoordinatorEntity):
         """Initialize the sensor."""
         super().__init__(coordinator)
 
+        self._attr_device_class = DEVICE_CLASS_AQI
         self._attr_icon = SENSOR_TYPES[sensor_type][2]
         self._attr_name = f"{client_name} {SENSOR_TYPES[sensor_type][0]}"
         self._attr_native_unit_of_measurement = SENSOR_TYPES[sensor_type][1]
-        self._attr_state = self.coordinator.data[sensor_type]
+        self._attr_native_value = self.coordinator.data[sensor_type]
+        self._attr_state_class = STATE_CLASS_MEASUREMENT
         
 
 
