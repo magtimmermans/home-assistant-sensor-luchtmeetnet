@@ -9,6 +9,7 @@ from datetime import timedelta
 from homeassistant.components.sensor import (
     PLATFORM_SCHEMA,
     SensorEntity,
+    SensorEntityDescription,
     STATE_CLASS_MEASUREMENT
 )
 from homeassistant.const import (
@@ -32,13 +33,23 @@ DOMAIN = "luchtmeetnet"
 
 _LOGGER = logging.getLogger(__name__)
 
-# Supported sensor types:
-# Key: ['label', unit, icon]
-SENSOR_TYPES = {
-    "stationname": ["Air Quality Stationname", None, None],
-    "lki": ["Air Quality Index", None, "mdi:gauge"],
-    "lki_text": ["Air Quality Status", None, None],
-}
+SENSOR_TYPES = tuple[SensorEntityDescription, ...] = (
+    SensorEntityDescription(
+        key="stationname",
+        name="Air Quality Stationname",
+    ),
+    SensorEntityDescription(
+        key="lki",
+        name="Air Quality Index",
+        device_class=DEVICE_CLASS_AQI,
+        icon="mdi:gauge"
+        state_class=STATE_CLASS_MEASUREMENT,
+    ),
+    SensorEntityDescription(
+        key="lki_text",
+        name="Air Quality Status",
+    ),
+)
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
     {
@@ -70,8 +81,12 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     await coordinator.async_config_entry_first_refresh()
 
     sensors = []
-    for sensor_type in SENSOR_TYPES:
-        sensors.append(LMNSensor(coordinator, sensor_type, config.get(CONF_NAME)))
+    sensors.extend(
+        [
+            LMNSensor(coordinator, description, config.get(CONF_NAME))
+            for description in SENSOR_TYPES
+        ]
+    )
 
     async_add_entities(sensors, True)
 
@@ -121,16 +136,22 @@ class LMNUpdateCoordinator(DataUpdateCoordinator):
 class LMNSensor(CoordinatorEntity, SensorEntity):
     """Representation of an LuchtmeetNet sensor."""
 
-    def __init__(self, coordinator, sensor_type, client_name):
+    def __init__(self, coordinator, description, client_name):
         """Initialize the sensor."""
         super().__init__(coordinator)
 
-        self._attr_device_class = DEVICE_CLASS_AQI
-        self._attr_icon = SENSOR_TYPES[sensor_type][2]
-        self._attr_name = f"{client_name} {SENSOR_TYPES[sensor_type][0]}"
-        self._attr_native_unit_of_measurement = SENSOR_TYPES[sensor_type][1]
-        self._attr_native_value = self.coordinator.data[sensor_type]
-        self._attr_state_class = STATE_CLASS_MEASUREMENT
+        self._attr_device_class = description.device_class
+        self._attr_icon = description.icon
+        self._attr_name = f"{client_name} {description.name}"
+        self._attr_state_class = description.state_class
+        self.description = description
+
+    @callback
+    def _async_process_data(self):
+        """Update the entity."""
+        self._attr_native_value = self.coordinator.data[self.device_class.key]
+
+        self.async_write_ha_state()
         
 
 
