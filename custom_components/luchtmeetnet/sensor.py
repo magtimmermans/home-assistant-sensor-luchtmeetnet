@@ -33,7 +33,7 @@ DOMAIN = "luchtmeetnet"
 
 _LOGGER = logging.getLogger(__name__)
 
-LMN_SENSOR_TYPES = tuple[SensorEntityDescription, ...] = (
+LMN_SENSOR_TYPES: tuple[SensorEntityDescription, ...] = (
     SensorEntityDescription(
         key="stationname",
         name="Air Quality Stationname",
