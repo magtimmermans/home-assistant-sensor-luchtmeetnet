@@ -33,7 +33,7 @@ DOMAIN = "luchtmeetnet"
 
 _LOGGER = logging.getLogger(__name__)
 
-SENSOR_TYPES = tuple[SensorEntityDescription, ...] = (
+LMN_SENSOR_TYPES = tuple[SensorEntityDescription, ...] = (
     SensorEntityDescription(
         key="stationname",
         name="Air Quality Stationname",
@@ -42,7 +42,7 @@ SENSOR_TYPES = tuple[SensorEntityDescription, ...] = (
         key="lki",
         name="Air Quality Index",
         device_class=DEVICE_CLASS_AQI,
-        icon="mdi:gauge"
+        icon="mdi:gauge",
         state_class=STATE_CLASS_MEASUREMENT,
     ),
     SensorEntityDescription(
@@ -84,7 +84,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     sensors.extend(
         [
             LMNSensor(coordinator, description, config.get(CONF_NAME))
-            for description in SENSOR_TYPES
+            for description in LMN_SENSOR_TYPES
         ]
     )
 
@@ -143,15 +143,9 @@ class LMNSensor(CoordinatorEntity, SensorEntity):
         self._attr_device_class = description.device_class
         self._attr_icon = description.icon
         self._attr_name = f"{client_name} {description.name}"
+        self._attr_native_value = self.coordinator.data[description.key]
         self._attr_state_class = description.state_class
-        self.description = description
 
-    @callback
-    def _async_process_data(self):
-        """Update the entity."""
-        self._attr_native_value = self.coordinator.data[self.description.key]
-
-        self.async_write_ha_state()
         
 
 
