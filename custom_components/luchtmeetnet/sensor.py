@@ -149,7 +149,7 @@ class LMNSensor(CoordinatorEntity, SensorEntity):
     @callback
     def _async_process_data(self):
         """Update the entity."""
-        self._attr_native_value = self.coordinator.data[self.device_class.key]
+        self._attr_native_value = self.coordinator.data[self.description.key]
 
         self.async_write_ha_state()
         
