@@ -6,11 +6,17 @@ import voluptuous as vol
 from luchtmeetnet.luchtmeetnet import LuchtmeetNet
 
 from datetime import timedelta
-from homeassistant.components.sensor import PLATFORM_SCHEMA
+from homeassistant.components.sensor import (
+    PLATFORM_SCHEMA,
+    SensorEntity,
+    SensorEntityDescription,
+    STATE_CLASS_MEASUREMENT
+)
 from homeassistant.const import (
     CONF_LATITUDE,
     CONF_LONGITUDE,
     CONF_NAME,
+    DEVICE_CLASS_AQI,
 )
 import homeassistant.helpers.config_validation as cv
 
@@ -27,13 +33,23 @@ DOMAIN = "luchtmeetnet"
 
 _LOGGER = logging.getLogger(__name__)
 
-# Supported sensor types:
-# Key: ['label', unit, icon]
-SENSOR_TYPES = {
-    "stationname": ["Air Quality Stationname", None, None],
-    "lki": ["Air Quality Index", None, "mdi:gauge"],
-    "lki_text": ["Air Quality Status", None, None],
-}
+LMN_SENSOR_TYPES: tuple[SensorEntityDescription, ...] = (
+    SensorEntityDescription(
+        key="stationname",
+        name="Air Quality Stationname",
+    ),
+    SensorEntityDescription(
+        key="lki",
+        name="Air Quality Index",
+        device_class=DEVICE_CLASS_AQI,
+        icon="mdi:gauge",
+        state_class=STATE_CLASS_MEASUREMENT,
+    ),
+    SensorEntityDescription(
+        key="lki_text",
+        name="Air Quality Status",
+    ),
+)
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
     {
@@ -62,15 +78,17 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     _LOGGER.debug("Initializing luchtmeet sensor coordinate %s", coordinates)
 
     coordinator = LMNUpdateCoordinator(hass, coordinates)
-    await coordinator.async_refresh()
-    if not coordinator.last_update_success:
-        raise ConfigEntryNotReady
+    await coordinator.async_config_entry_first_refresh()
 
     sensors = []
-    for sensor_type in SENSOR_TYPES:
-        sensors.append(LMNSensor(coordinator, sensor_type, config.get(CONF_NAME)))
+    sensors.extend(
+        [
+            LMNSensor(coordinator, description, config.get(CONF_NAME))
+            for description in LMN_SENSOR_TYPES
+        ]
+    )
 
-    async_add_entities(sensors)
+    async_add_entities(sensors, True)
 
 
 class LMNUpdateCoordinator(DataUpdateCoordinator):
@@ -115,35 +133,19 @@ class LMNUpdateCoordinator(DataUpdateCoordinator):
             raise UpdateFailed(err)
 
 
-class LMNSensor(CoordinatorEntity):
+class LMNSensor(CoordinatorEntity, SensorEntity):
     """Representation of an LuchtmeetNet sensor."""
 
-    def __init__(self, coordinator, sensor_type, client_name):
+    def __init__(self, coordinator, description, client_name):
         """Initialize the sensor."""
         super().__init__(coordinator)
 
-        self.client_name = client_name
-        self._name = SENSOR_TYPES[sensor_type][0]
-        self.type = sensor_type
-        self._state = None
-        self._unit_of_measurement = SENSOR_TYPES[self.type][1]
+        self._attr_device_class = description.device_class
+        self._attr_icon = description.icon
+        self._attr_name = f"{client_name} {description.name}"
+        self._attr_native_value = self.coordinator.data[description.key]
+        self._attr_state_class = description.state_class
 
-    @property
-    def name(self):
-        """Return the name of the sensor."""
-        return f"{self.client_name} {self._name}"
+        
 
-    @property
-    def state(self):
-        """Return the state of the device."""
-        return self.coordinator.data[self.type]
 
-    @property
-    def unit_of_measurement(self):
-        """Return the unit of measurement of this entity, if any."""
-        return self._unit_of_measurement
-
-    @property
-    def icon(self):
-        """Return possible sensor specific icon."""
-        return SENSOR_TYPES[self.type][2]
