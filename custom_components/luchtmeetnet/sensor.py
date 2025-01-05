@@ -10,7 +10,7 @@ from homeassistant.components.sensor import (
     PLATFORM_SCHEMA,
     SensorEntity,
     SensorEntityDescription,
-    STATE_CLASS_MEASUREMENT
+    SensorStateClass
 )
 from homeassistant.const import (
     CONF_LATITUDE,
@@ -43,7 +43,7 @@ LMN_SENSOR_TYPES: tuple[SensorEntityDescription, ...] = (
         name="Air Quality Index",
         device_class=DEVICE_CLASS_AQI,
         icon="mdi:gauge",
-        state_class=STATE_CLASS_MEASUREMENT,
+        state_class=SensorStateClass.MEASUREMENT,
     ),
     SensorEntityDescription(
         key="lki_text",
