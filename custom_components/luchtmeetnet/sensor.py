@@ -10,13 +10,13 @@ from homeassistant.components.sensor import (
     PLATFORM_SCHEMA,
     SensorEntity,
     SensorEntityDescription,
-    SensorStateClass
+    SensorStateClass,
+    SensorDeviceClass
 )
 from homeassistant.const import (
     CONF_LATITUDE,
     CONF_LONGITUDE,
-    CONF_NAME,
-    DEVICE_CLASS_AQI,
+    CONF_NAME
 )
 import homeassistant.helpers.config_validation as cv
 
@@ -41,7 +41,7 @@ LMN_SENSOR_TYPES: tuple[SensorEntityDescription, ...] = (
     SensorEntityDescription(
         key="lki",
         name="Air Quality Index",
-        device_class=DEVICE_CLASS_AQI,
+        device_class=SensorDeviceClass.AQI,
         icon="mdi:gauge",
         state_class=SensorStateClass.MEASUREMENT,
     ),
@@ -145,7 +145,3 @@ class LMNSensor(CoordinatorEntity, SensorEntity):
         self._attr_name = f"{client_name} {description.name}"
         self._attr_native_value = self.coordinator.data[description.key]
         self._attr_state_class = description.state_class
-
-        
-
-
